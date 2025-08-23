@@ -1,0 +1,27 @@
+// routes/foodRoutes.js
+const express = require('express');
+const router = express.Router();
+const foodController = require('../controllers/foodController');
+const upload = require('../middlewares/uploadMiddleware');
+const { protect, admin } = require('../middlewares/authMiddleware');
+
+// Public: Get all food items
+router.get('/', foodController.getAllFoods);
+
+// Public: Get single food item
+router.get('/:id',protect,foodController.getFoodById);
+
+// Admin only: Create food
+router.post(
+  '/create-food',
+  upload.single('image'),protect, admin,foodController.createFood
+);
+
+
+// Admin only: Update food
+router.put('/:id', protect, admin, foodController.updateFood);
+
+// Admin only: Delete food
+router.delete('/:id', protect, admin, foodController.deleteFood);
+
+module.exports = router;

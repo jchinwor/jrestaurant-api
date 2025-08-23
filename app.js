@@ -1,0 +1,73 @@
+// app.js
+const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./middlewares/errorMiddleware');
+
+const app = express();
+
+
+
+
+// --- 1) GLOBAL MIDDLEWARES ---
+app.use(helmet()); // Set security headers
+app.use(cors());   // Enable CORS
+app.use(express.json()); // Parse JSON body
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded body
+app.use(cookieParser());
+
+app.use(
+  cors({
+    origin: ["http://localhost:8000","https://www.jenkinschinwor.com","http://localhost:5173","https://jc-shop.onrender.com", "https://jc-shop-admin.onrender.com"]
+  })
+); 
+
+// Logging in development
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// --- 2) RATE LIMITING (BEFORE ROUTES) ---
+const limiter = rateLimit({
+  max: 100, // max requests
+  windowMs: 60 * 60 * 1000, // per hour
+  message: 'Too many requests from this IP, please try again later'
+});
+app.use('/api', limiter);
+
+// --- 3) ROUTES ---
+const userRoutes = require('./routes/userRoutes');
+const foodRoutes = require('./routes/foodRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/foods', foodRoutes);
+app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/orders", orderRoutes);
+
+
+app.use('/uploads', express.static('uploads'));
+// Serve static files from the "uploads" directory
+
+
+
+// --- 4) HANDLE UNDEFINED ROUTES ---
+app.use((req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+
+
+// --- 5) GLOBAL ERROR HANDLER ---
+app.use(globalErrorHandler);
+
+module.exports = app;
