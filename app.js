@@ -7,6 +7,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./middlewares/errorMiddleware');
+import path from 'path'
 
 const app = express();
 
@@ -58,7 +59,16 @@ app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/orders", orderRoutes);
 
 
-app.use('/uploads', express.static('uploads'));
+
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'), {
+    setHeaders: (res) => {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+      res.setHeader('Access-Control-Allow-Origin', '*')
+    }
+  })
+)
 // Serve static files from the "uploads" directory
 
 
