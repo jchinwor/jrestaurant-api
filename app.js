@@ -22,8 +22,10 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:9000","https://www.jenkinschinwor.com"]
-  })
+    origin: ["http://localhost:9000","https://www.jenkinschinwor.com","http://localhost:8080"]
+  }),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  credentials: true
 ); 
 
 // Logging in development
