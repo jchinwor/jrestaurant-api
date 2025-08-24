@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:8000","https://www.jenkinschinwor.com"]
+    origin: ["http://localhost:9000","https://www.jenkinschinwor.com"]
   })
 ); 
 
