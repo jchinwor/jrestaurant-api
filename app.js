@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./middlewares/errorMiddleware');
-import path from 'path'
+const path = require('path');
 
 const app = express();
 
