@@ -9,7 +9,7 @@ const { protect, admin } = require('../middlewares/authMiddleware');
 router.get('/', foodController.getAllFoods);
 
 // Public: Get single food item
-router.get('/:id',protect,foodController.getFoodById);
+router.get('/:id',foodController.getFoodById);
 
 // Admin only: Create food
 router.post(
