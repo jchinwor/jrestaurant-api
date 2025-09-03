@@ -36,12 +36,12 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // --- 2) RATE LIMITING (BEFORE ROUTES) ---
-const limiter = rateLimit({
-  max: 100, // max requests
-  windowMs: 60 * 60 * 1000, // per hour
-  message: 'Too many requests from this IP, please try again later'
-});
-app.use('/api', limiter);
+// const limiter = rateLimit({
+//   max: 100, // max requests
+//   windowMs: 60 * 60 * 1000, // per hour
+//   message: 'Too many requests from this IP, please try again later'
+// });
+// app.use('/api', limiter);
 
 // --- 3) ROUTES ---
 const userRoutes = require('./routes/userRoutes');
