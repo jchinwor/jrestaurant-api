@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./middlewares/errorMiddleware');
 const path = require('path');
-
+require('./config/passport'); // Ensure passport strategies are configured
 const app = express();
 
 
@@ -50,6 +50,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const oauthRoutes = require('./routes/oauthRoutes');
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/foods', foodRoutes);
@@ -57,7 +58,7 @@ app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/orders", orderRoutes);
-
+app.use('/api/v1/auth', oauthRoutes);
 
 
 app.use(
