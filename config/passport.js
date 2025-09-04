@@ -30,7 +30,6 @@ passport.use(
           user = await User.create({
             name,
             email,
-            password: undefined,          // no password (social login)
             provider: 'google',
             googleId: profile.id,
             avatar
