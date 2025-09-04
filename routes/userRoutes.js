@@ -20,5 +20,11 @@ router.get('/', protect, admin, authController.getAllUsers);
 router.get('/:id', protect, authController.getUserById);
 router.put('/:id', protect, authController.updateUser);
 router.delete('/:id', protect, admin, authController.deleteUser);
+router.get('/me', protect, async (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    data: req.user
+  });
+});
 
 module.exports = router;
