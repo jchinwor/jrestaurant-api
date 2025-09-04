@@ -23,8 +23,9 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       trim: true,
-      required: [true, "Please add a password"],
-      Select: false,
+      required: function () {
+        return this.provider === "local"; // only require for local signup
+      },
     },
     verified: {
       type: Boolean,
