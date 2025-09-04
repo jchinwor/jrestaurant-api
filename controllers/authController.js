@@ -51,6 +51,13 @@ exports.register = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getMe = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: req.user
+  });
+  });
+
 // @desc    Login user
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
