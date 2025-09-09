@@ -70,6 +70,10 @@ exports.login = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email });
   if (!user) return next(new AppError('Invalid credentials', 400));
 
+  if (!user || !user.password) {
+  return next(new AppError('Invalid credentials', 400));
+}
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new AppError('Invalid credentials', 400));
 
