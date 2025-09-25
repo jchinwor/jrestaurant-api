@@ -19,7 +19,7 @@ router.post(
 
 
 // Admin only: Update food
-router.put('/:id', protect, admin, foodController.updateFood);
+router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 
 // Admin only: Delete food
 router.delete('/:id', protect, admin, foodController.deleteFood);
