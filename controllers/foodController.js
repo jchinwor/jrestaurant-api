@@ -112,7 +112,10 @@ const { _id:userId, } = req.user;
   
   if (!food) return next(new AppError('Food not found', 404));
 
-  food.userId.toString() !== userId && next(new AppError('You are not authorized to update this food item', 403));
+  if (food.userId.toString() !== userId) {
+  return next(new AppError('You are not authorized to update this food item', 403));
+}
+
 
   food.name = req.body.name || food.name;
   food.description = req.body.description || food.description;
