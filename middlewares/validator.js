@@ -52,6 +52,17 @@ exports.createFoodSchema = Joi.object({
     'string.min': `"name" should have a minimum length of {#limit}`,
     'any.required': `"name" is a required field`
 });
+exports.updateFoodSchema = Joi.object({
+    name: Joi.string().min(3).required(),
+    description: Joi.string().min(10).required(),
+    price: Joi.number().positive().required(),
+    category: Joi.string().required(),
+}).messages({
+    'string.base': `"name" should be a type of 'text'`,
+    'string.empty': `"name" cannot be an empty field`,
+    'string.min': `"name" should have a minimum length of {#limit}`,
+    'any.required': `"name" is a required field`
+});
 
 exports.createReviewSchema = Joi.object({
     rating: Joi.number().min(1).max(5).required(),
