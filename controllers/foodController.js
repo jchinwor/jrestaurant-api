@@ -107,6 +107,7 @@ const { _id:userId, } = req.user;
       message: 'Only image files are allowed'
     });
   }
+
   // Find food item
   const food = await Food.findById(req.params.id);
   
@@ -115,7 +116,9 @@ const { _id:userId, } = req.user;
   if (!food.userId.equals(userId)) {
   return next(new AppError('You are not authorized to update this food item', 403));
 }
-
+  if (req.file) {
+  food.imageUrl = `/uploads/foods/${req.file.filename}` || food.imageUrl
+}
   food.name = req.body.name || food.name;
   food.description = req.body.description || food.description;
   food.price = req.body.price || food.price;
