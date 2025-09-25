@@ -112,15 +112,9 @@ const { _id:userId, } = req.user;
   
   if (!food) return next(new AppError('Food not found', 404));
 
-  // 🔍 Add these logs here to debug the user ID mismatch
-console.log('Food userId:', food.userId.toString());
-console.log('Request userId:', userId);
-
-
-  if (food.userId.toString() !== userId) {
+  if (!food.userId.equals(userId)) {
   return next(new AppError('You are not authorized to update this food item', 403));
 }
-
 
   food.name = req.body.name || food.name;
   food.description = req.body.description || food.description;
