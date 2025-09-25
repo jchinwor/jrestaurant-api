@@ -1,7 +1,7 @@
 const Food = require('../models/foodModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const { createFoodSchema } = require('../middlewares/validator');
+const { createFoodSchema, updateFoodSchema } = require('../middlewares/validator');
 
 // @desc    Get all foods
 exports.getAllFoods = catchAsync(async (req, res) => {
