@@ -83,7 +83,7 @@ exports.createFood = catchAsync(async (req, res) => {
 exports.updateFood = catchAsync(async (req, res, next) => {
 const { _id:userId, } = req.user;
   const { name, description, price, category } = req.body;
-  const { error, value } = createFoodSchema.validate({
+  const { error, value } = updateFoodSchema.validate({
     name,
     description,
     price,
