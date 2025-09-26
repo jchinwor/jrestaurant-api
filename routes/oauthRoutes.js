@@ -7,10 +7,9 @@ const { issueTokenAndRedirect } = require('../controllers/oauthController');
 router.get(
   '/google',
   (req, res, next) => {
-    // Preserve where to return (optional)
-    // e.g. /auth/google?state=/cart
     req.session = req.session || {};
     req.session.oauthState = req.query.state || '';
+    req.session.isAdminLogin = req.query.admin === 'true'; // 👈 save admin intent
     next();
   },
   passport.authenticate('google', {
@@ -19,15 +18,13 @@ router.get(
   })
 );
 
-// Callback
 router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/auth/google/failure' }),
   (req, res, next) => {
-    // if you want to use state from session → append it to FRONTEND_REDIRECT_URL
-    // e.g. FRONTEND_REDIRECT_URL?token=...&state=/cart
     const state = (req.session && req.session.oauthState) ? `&state=${encodeURIComponent(req.session.oauthState)}` : '';
     req.stateSuffix = state;
+    req.isAdminLogin = req.session?.isAdminLogin; // 👈 carry flag forward
     next();
   },
   (req, res) => {
@@ -37,7 +34,18 @@ router.get(
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
-    const base = process.env.FRONTEND_REDIRECT_URL;
+
+    // ✅ Redirect logic based on admin flag
+    let base;
+    if (req.isAdminLogin) {
+      if (req.user.role !== 'admin') {
+        return res.redirect(`${process.env.ADMIN_REDIRECT_URL}?error=not_authorized`);
+      }
+      base = process.env.ADMIN_REDIRECT_URL;
+    } else {
+      base = process.env.USER_REDIRECT_URL;
+    }
+
     return res.redirect(`${base}?token=${token}${req.stateSuffix || ''}`);
   }
 );
