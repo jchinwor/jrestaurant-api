@@ -3,23 +3,21 @@ const User = require('../models/userModel'); // adjust path
 
 exports.issueTokenAndRedirect = async (req, res) => {
   try {
-    // Passport put Google profile on req.user
     const googleProfile = req.user;
     if (!googleProfile) {
-      return res.redirect(`${process.env.FRONTEND_REDIRECT_URL}?error=auth_failed`);
+      return res.redirect(`${process.env.USER_APP_URL}?error=auth_failed`);
     }
 
-    // Try to find user by email
     let user = await User.findOne({ email: googleProfile.emails[0].value });
 
-    // If not found, create one
     if (!user) {
       user = await User.create({
         name: googleProfile.displayName,
         email: googleProfile.emails[0].value,
-        password: null,           // no password for Google login
-        provider: 'google',       // optional field
-        googleId: googleProfile.id
+        password: null,
+        provider: 'google',
+        googleId: googleProfile.id,
+        role: 'user' // default role if none
       });
     }
 
@@ -30,12 +28,21 @@ exports.issueTokenAndRedirect = async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
-    // Redirect back to frontend with token
-    const frontendTarget = `${process.env.FRONTEND_REDIRECT_URL}?token=${token}`;
-    return res.redirect(frontendTarget);
+    // Decide redirect target based on role + where login was initiated
+    const isAdminLogin = req.query.admin === "true"; // 👈 frontend passes ?admin=true when calling
+    if (isAdminLogin) {
+      if (user.role !== "admin") {
+        return res.redirect(`${process.env.ADMIN_APP_URL}?error=not_authorized`);
+      }
+      return res.redirect(`${process.env.ADMIN_APP_URL}?token=${token}`);
+    }
+
+    // Default → normal user login
+    return res.redirect(`${process.env.USER_APP_URL}?token=${token}`);
 
   } catch (err) {
-    console.error('OAuth error:', err);
-    return res.redirect(`${process.env.FRONTEND_REDIRECT_URL}?error=server_error`);
+    console.error("OAuth error:", err);
+    return res.redirect(`${process.env.USER_APP_URL}?error=server_error`);
   }
 };
+
