@@ -39,11 +39,11 @@ router.get(
     let base;
     if (req.isAdminLogin) {
       if (req.user.role !== 'admin') {
-        return res.redirect(`${process.env.ADMIN_REDIRECT_URL}?error=not_authorized`);
+        return res.redirect(`${process.env.ADMIN_APP_URL}?error=not_authorized`);
       }
-      base = process.env.ADMIN_REDIRECT_URL;
+      base = process.env.ADMIN_APP_URL;
     } else {
-      base = process.env.USER_REDIRECT_URL;
+      base = process.env.USER_APP_URL;
     }
 
     return res.redirect(`${base}?token=${token}${req.stateSuffix || ''}`);
