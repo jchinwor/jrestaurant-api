@@ -117,7 +117,7 @@ const { _id:userId, } = req.user;
   return next(new AppError('You are not authorized to update this food item', 403));
 }
   if (req.file) {
-  food.imageUrl = `/uploads/foods/${req.file.filename}` || food.imageUrl
+  food.imageUrl = `/uploads/foods/${req.file.filename}`
 }
   food.name = req.body.name || food.name;
   food.description = req.body.description || food.description;
