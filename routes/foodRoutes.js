@@ -24,7 +24,7 @@ router.post(
 // router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 
 
-router.put('/:id', protect, admin, upload.single('image'), (req, res, next) => {
+router.put('/:id',upload.single('image'), protect, admin, (req, res, next) => {
   if (req.file) {
     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
     console.log('Checking file at:', fullPath);
