@@ -67,7 +67,7 @@ app.use('/api/v1/auth', oauthRoutes);
 
 app.use(
   '/uploads',
-  express.static(path.join(process.cwd(), 'src', 'uploads'), {
+  express.static(path.join(process.cwd(), 'uploads'), {
     setHeaders: (res) => {
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
       res.setHeader('Access-Control-Allow-Origin', '*')
