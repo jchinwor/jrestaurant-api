@@ -55,7 +55,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const oauthRoutes = require('./routes/oauthRoutes');
-const debugRoutes = require('./routes/debugRoutes');
+
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/foods', foodRoutes);
@@ -64,7 +64,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use('/api/v1/auth', oauthRoutes);
-app.use('/api/v1/debug', debugRoutes);
+
 
 
 app.use(
