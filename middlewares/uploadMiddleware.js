@@ -2,11 +2,16 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const uploadPath = path.join(process.cwd(),'uploads', 'foods');
-// Storage configuration
+// Resolve from project root
+const uploadPath = path.join(process.cwd(), 'src', 'uploads', 'foods');
+
+// Ensure folder exists
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    fs.mkdirSync(uploadPath, { recursive: true }); // Ensure folder exists
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
@@ -15,8 +20,6 @@ const storage = multer.diskStorage({
   }
 });
 
-
-// File filter (only images allowed)
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
