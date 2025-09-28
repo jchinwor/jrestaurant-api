@@ -23,17 +23,13 @@ router.post(
 // Admin only: Update food
 // router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 router.put('/:id', protect, admin, upload.single('image'), (req, res, next) => {
- 
-
   if (req.file) {
-    const fullPath = path.join(__dirname, 'uploads/foods', req.file.filename);
+    const fullPath = path.join(process.cwd(), 'src', 'uploads', 'foods', req.file.filename);
     console.log('Checking file at:', fullPath);
     console.log('Exists:', fs.existsSync(fullPath));
-     
   }
   next();
 });
-
 
 // Admin only: Delete food
 router.delete('/:id', protect, admin, foodController.deleteFood);
