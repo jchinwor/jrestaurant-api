@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const uploadPath = path.join(process.cwd(), 'src', 'uploads', 'foods');
+const uploadPath = path.join(process.cwd(),'uploads', 'foods');
 // Storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
