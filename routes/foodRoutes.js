@@ -4,6 +4,8 @@ const router = express.Router();
 const foodController = require('../controllers/foodController');
 const upload = require('../middlewares/uploadMiddleware');
 const { protect, admin } = require('../middlewares/authMiddleware');
+const fs = require('fs');
+const path = require('path');
 
 // Public: Get all food items
 router.get('/', foodController.getAllFoods);
@@ -21,10 +23,10 @@ router.post(
 // Admin only: Update food
 // router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 router.put('/:id', protect, admin, upload.single('image'), (req, res, next) => {
-  if (!req.file) {
-    console.error('No file saved');
-  } else {
-    console.log('File uploaded:', req.file);
+  if (req.file) {
+    const fullPath = path.join(__dirname, 'uploads/foods', req.file.filename);
+    console.log('Checking file at:', fullPath);
+    console.log('Exists:', fs.existsSync(fullPath));
   }
   next();
 });
