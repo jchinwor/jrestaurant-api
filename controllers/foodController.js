@@ -38,48 +38,67 @@ exports.getFoodById = catchAsync(async (req, res, next) => {
 });
 
 // @desc    Create food
-exports.createFood = catchAsync(async (req, res) => {
-  const { name, description, price, category} = req.body;
-  const { error, value } = createFoodSchema.validate({
-    name,
-    description,
-    price,
-    category
-  });
+exports.createFood = catchAsync(async (req, res, next) => {
+  const { name, description, price, category } = req.body;
+
+  // Validate input
+  const { error } = createFoodSchema.validate({ name, description, price, category });
   if (error) {
     return res.status(400).json({
       status: 'fail',
       message: error.details[0].message
     });
   }
-  const foodExists = await Food.find ({ name });
+
+  // Check for duplicate food name
+  const foodExists = await Food.find({ name });
   if (foodExists.length > 0) {
     return res.status(400).json({
       status: 'fail',
       message: 'Food item already exists'
     });
   }
+
+  // Require image
   if (!req.file) {
     return res.status(400).json({
       status: 'fail',
       message: 'Image file is required'
     });
   }
-  
-  // Create food item
-  const food = await Food.create({
-    name,
-    description,
-    price,
-    category,
-    userId: req.user.id, // assuming you have user auth middleware
-    imageUrl: req.file ? `/uploads/foods/${req.file.filename}` : null
-  });
 
-  res.status(201).json({
-    status: 'success',
-    data: { food }
-  });
+  // ✅ Upload image to Cloudinary with transformations
+  const uploadStream = cloudinary.uploader.upload_stream(
+    {
+      folder: 'foods',
+      transformation: [
+        { width: 500, height: 500, crop: 'fill', gravity: 'auto' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    },
+    async (error, result) => {
+      if (error) return next(new AppError('Cloudinary upload failed', 500));
+
+      // Create food item with Cloudinary image URL
+      const food = await Food.create({
+        name,
+        description,
+        price,
+        category,
+        userId: req.user.id,
+        imageUrl: result.secure_url
+      });
+
+      res.status(201).json({
+        status: 'success',
+        data: { food }
+      });
+    }
+  );
+
+  // Stream image buffer to Cloudinary
+  streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
 });
 // @desc    Update food
 // exports.updateFood = catchAsync(async (req, res, next) => {
