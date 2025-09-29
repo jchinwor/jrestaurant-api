@@ -31,7 +31,7 @@ exports.resetPasswordSchema = Joi.object({
     newPassword: Joi.string().min(6).required().messages({
         'string.pattern.base': `"password" must contain at least one uppercase letter, one lowercase letter, and one digit`
     }).pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{6,}$')),
-});
+}); 
 
 exports.forgotPasswordSchema = Joi.object({
     email: Joi.string().min(6).max(60).required().email({ tlds: { allow: ['com','net'] },   }),
