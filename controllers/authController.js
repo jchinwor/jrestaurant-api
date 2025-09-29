@@ -51,12 +51,22 @@ exports.register = catchAsync(async (req, res, next) => {
   });
 });
 
+
 exports.getMe = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select("-password");
+  
+  if (!user) {
+    return res.status(404).json({
+      status: 'fail',
+      message: 'User not found'
+    });
+  }
+
   res.status(200).json({
     status: 'success',
-    data: req.user
+    data: user
   });
-  });
+});
 
 // @desc    Login user
 exports.login = catchAsync(async (req, res, next) => {
