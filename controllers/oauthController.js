@@ -10,16 +10,17 @@ exports.issueTokenAndRedirect = async (req, res) => {
 
     let user = await User.findOne({ email: googleProfile.emails[0].value });
 
-    if (!user) {
-      user = await User.create({
-        name: googleProfile.displayName,
-        email: googleProfile.emails[0].value,
-        password: null,
-        provider: 'google',
-        googleId: googleProfile.id,
-        role: 'user' // default role if none
-      });
-    }
+ if (!user) {
+  user = await User.create({
+    name: googleProfile.displayName,
+    email: googleProfile.emails[0].value,
+    password: null,
+    provider: 'google',
+    googleId: googleProfile.id,
+    role: 'user', // default role
+    avatar: googleProfile.photos?.[0]?.value || null
+  });
+}
 
     // Sign JWT
     const token = jwt.sign(
