@@ -2,6 +2,8 @@ const Food = require('../models/foodModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { createFoodSchema, updateFoodSchema } = require('../middlewares/validator');
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
 
 // @desc    Get all foods
 exports.getAllFoods = catchAsync(async (req, res) => {
@@ -80,61 +82,117 @@ exports.createFood = catchAsync(async (req, res) => {
   });
 });
 // @desc    Update food
-exports.updateFood = catchAsync(async (req, res, next) => {
-const { _id:userId, } = req.user;
-  const { name, description, price, category } = req.body;
-  const { error, value } = updateFoodSchema.validate({
-    name,
-    description,
-    price,
-    category
-  });
-  if (error) {
-    return res.status(400).json({
-      status: 'fail',
-      message: error.details[0].message
-    });
-  }
-  if (!req.file && !name && !description && !price && !category) {
-    return res.status(400).json({
-      status: 'fail',
-      message: 'At least one field must be provided for update'
-    });
-  }
-  if (req.file && !req.file.mimetype.startsWith('image')) {
-    return res.status(400).json({
-      status: 'fail',
-      message: 'Only image files are allowed'
-    });
-  }
+// exports.updateFood = catchAsync(async (req, res, next) => {
+// const { _id:userId, } = req.user;
+//   const { name, description, price, category } = req.body;
+//   const { error, value } = updateFoodSchema.validate({
+//     name,
+//     description,
+//     price,
+//     category
+//   });
+//   if (error) {
+//     return res.status(400).json({
+//       status: 'fail',
+//       message: error.details[0].message
+//     });
+//   }
+//   if (!req.file && !name && !description && !price && !category) {
+//     return res.status(400).json({
+//       status: 'fail',
+//       message: 'At least one field must be provided for update'
+//     });
+//   }
+//   if (req.file && !req.file.mimetype.startsWith('image')) {
+//     return res.status(400).json({
+//       status: 'fail',
+//       message: 'Only image files are allowed'
+//     });
+//   }
 
-  // Find food item
-  const food = await Food.findById(req.params.id);
+//   // Find food item
+//   const food = await Food.findById(req.params.id);
   
-  if (!food) return next(new AppError('Food not found', 404));
+//   if (!food) return next(new AppError('Food not found', 404));
 
-  if (!food.userId.equals(userId)) {
-  return next(new AppError('You are not authorized to update this food item', 403));
-}
-//   if (req.file) {
-//   food.imageUrl = `/uploads/foods/${req.file.filename}`
+//   if (!food.userId.equals(userId)) {
+//   return next(new AppError('You are not authorized to update this food item', 403));
 // }
+// //   if (req.file) {
+// //   food.imageUrl = `/uploads/foods/${req.file.filename}`
+// // }
+//   if (req.file) {
+//   console.log('Uploaded file:', req.file);
+//   food.imageUrl = `/uploads/foods/${req.file.filename}`;
+//   console.log('Image URL set to:', food.imageUrl);
+// }
+//   food.name = req.body.name || food.name;
+//   food.description = req.body.description || food.description;
+//   food.price = req.body.price || food.price;
+//   food.category = req.body.category || food.category;
+
+//   const updatedFood = await food.save();
+
+//   res.status(200).json({
+//     status: 'success',
+//     data: { updatedFood }
+//   });
+// });
+
+exports.updateFood = catchAsync(async (req, res, next) => {
+  const { _id: userId } = req.user;
+  const { name, description, price, category } = req.body;
+
+  const { error } = updateFoodSchema.validate({ name, description, price, category });
+  if (error) {
+    return res.status(400).json({ status: 'fail', message: error.details[0].message });
+  }
+
+  if (!req.file && !name && !description && !price && !category) {
+    return res.status(400).json({ status: 'fail', message: 'At least one field must be provided for update' });
+  }
+
+  const food = await Food.findById(req.params.id);
+  if (!food) return next(new AppError('Food not found', 404));
+  if (!food.userId.equals(userId)) return next(new AppError('You are not authorized to update this food item', 403));
+
+  // ✅ Upload image to Cloudinary
   if (req.file) {
-  console.log('Uploaded file:', req.file);
-  food.imageUrl = `/uploads/foods/${req.file.filename}`;
-  console.log('Image URL set to:', food.imageUrl);
-}
-  food.name = req.body.name || food.name;
-  food.description = req.body.description || food.description;
-  food.price = req.body.price || food.price;
-  food.category = req.body.category || food.category;
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'foods' },
+      async (error, result) => {
+        if (error) return next(new AppError('Cloudinary upload failed', 500));
 
-  const updatedFood = await food.save();
+        food.imageUrl = result.secure_url;
+        food.name = name || food.name;
+        food.description = description || food.description;
+        food.price = price || food.price;
+        food.category = category || food.category;
 
-  res.status(200).json({
-    status: 'success',
-    data: { updatedFood }
-  });
+        const updatedFood = await food.save();
+
+        return res.status(200).json({
+          status: 'success',
+          data: { updatedFood }
+        });
+      }
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+  } else {
+    // ✅ No image — just update fields
+    food.name = name || food.name;
+    food.description = description || food.description;
+    food.price = price || food.price;
+    food.category = category || food.category;
+
+    const updatedFood = await food.save();
+
+    return res.status(200).json({
+      status: 'success',
+      data: { updatedFood }
+    });
+  }
 });
 
 // @desc    Delete food

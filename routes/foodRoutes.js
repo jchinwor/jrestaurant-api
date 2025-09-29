@@ -23,6 +23,7 @@ router.post(
 // Admin only: Update food
 router.put('/:id', upload.single('image'), protect, admin, foodController.updateFood);
 
+
 // router.put('/:id', protect, admin, upload.single('image'), (req, res, next) => {
 //   if (req.file) {
 //     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
