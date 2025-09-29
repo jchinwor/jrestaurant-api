@@ -23,26 +23,24 @@ router.post(
 // Admin only: Update food
 // router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 
-const fs = require('fs');
-const path = require('path');
-
-router.put('/:id', upload.single('image'), protect, admin, (req, res, next) => {
+router.put('/:id', protect, admin, upload.single('image'), (req, res, next) => {
   if (req.file) {
     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
     console.log('Checking file at:', fullPath);
     console.log('Exists:', fs.existsSync(fullPath));
 
-    // Manual write test
-    const testPath = path.join(process.cwd(), 'uploads', 'foods', 'test.txt');
+    // ✅ List all files in the uploads/foods folder
+    const folderPath = path.join(process.cwd(), 'uploads', 'foods');
     try {
-      fs.writeFileSync(testPath, 'test content');
-      console.log('Manual write success:', fs.existsSync(testPath));
+      const files = fs.readdirSync(folderPath);
+      console.log('Current files in uploads/foods:', files);
     } catch (err) {
-      console.error('Manual write failed:', err.message);
+      console.error('Error reading uploads folder:', err.message);
     }
   }
   next();
 });
+
 
 
 
