@@ -21,7 +21,6 @@ exports.issueTokenAndRedirect = async (req, res) => {
     avatar: googleProfile.photos?.[0]?.value || null
   });
 }
-
     // Sign JWT
     const token = jwt.sign(
       {
