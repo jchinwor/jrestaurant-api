@@ -100,64 +100,8 @@ exports.createFood = catchAsync(async (req, res, next) => {
   // Stream image buffer to Cloudinary
   streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
 });
+
 // @desc    Update food
-// exports.updateFood = catchAsync(async (req, res, next) => {
-// const { _id:userId, } = req.user;
-//   const { name, description, price, category } = req.body;
-//   const { error, value } = updateFoodSchema.validate({
-//     name,
-//     description,
-//     price,
-//     category
-//   });
-//   if (error) {
-//     return res.status(400).json({
-//       status: 'fail',
-//       message: error.details[0].message
-//     });
-//   }
-//   if (!req.file && !name && !description && !price && !category) {
-//     return res.status(400).json({
-//       status: 'fail',
-//       message: 'At least one field must be provided for update'
-//     });
-//   }
-//   if (req.file && !req.file.mimetype.startsWith('image')) {
-//     return res.status(400).json({
-//       status: 'fail',
-//       message: 'Only image files are allowed'
-//     });
-//   }
-
-//   // Find food item
-//   const food = await Food.findById(req.params.id);
-  
-//   if (!food) return next(new AppError('Food not found', 404));
-
-//   if (!food.userId.equals(userId)) {
-//   return next(new AppError('You are not authorized to update this food item', 403));
-// }
-// //   if (req.file) {
-// //   food.imageUrl = `/uploads/foods/${req.file.filename}`
-// // }
-//   if (req.file) {
-//   console.log('Uploaded file:', req.file);
-//   food.imageUrl = `/uploads/foods/${req.file.filename}`;
-//   console.log('Image URL set to:', food.imageUrl);
-// }
-//   food.name = req.body.name || food.name;
-//   food.description = req.body.description || food.description;
-//   food.price = req.body.price || food.price;
-//   food.category = req.body.category || food.category;
-
-//   const updatedFood = await food.save();
-
-//   res.status(200).json({
-//     status: 'success',
-//     data: { updatedFood }
-//   });
-// });
-
 exports.updateFood = catchAsync(async (req, res, next) => {
   const { _id: userId } = req.user;
   const { name, description, price, category } = req.body;
