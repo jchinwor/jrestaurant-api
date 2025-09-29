@@ -28,7 +28,7 @@ exports.issueTokenAndRedirect = async (req, res) => {
     role: user.role,
     name: user.name,
     email: user.email,
-    avatar: user.avatar || user.googleAvatar || "" // store google profile picture if available
+    avatar: user.avatar ||  "" // store google profile picture if available
   },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
