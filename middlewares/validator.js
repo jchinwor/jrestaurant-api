@@ -42,15 +42,23 @@ exports.forgotPasswordSchema = Joi.object({
 });
 
 exports.createFoodSchema = Joi.object({
-    name: Joi.string().min(3).required(),
-    description: Joi.string().min(10).required(),
-    price: Joi.number().positive().required(),
-    category: Joi.string().required(),
-}).messages({
+     name: Joi.string().min(3).messages({
     'string.base': `"name" should be a type of 'text'`,
     'string.empty': `"name" cannot be an empty field`,
     'string.min': `"name" should have a minimum length of {#limit}`,
-    'any.required': `"name" is a required field`
+  }),
+  description: Joi.string().min(10).messages({
+    'string.base': `"description" should be a type of 'text'`,
+    'string.empty': `"description" cannot be an empty field`,
+    'string.min': `"description" should have a minimum length of {#limit}`,
+  }),
+  price: Joi.number().positive().messages({
+    'number.base': `"price" should be a type of 'number'`,
+    'number.positive': `"price" must be a positive number`,
+  }),
+  category: Joi.string().required().messages({
+    'string.base': `"category" should be a type of 'text'`,
+  }),
 });
 exports.updateFoodSchema = Joi.object({
   name: Joi.string().min(3).messages({
