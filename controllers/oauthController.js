@@ -23,7 +23,13 @@ exports.issueTokenAndRedirect = async (req, res) => {
 
     // Sign JWT
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      {
+    id: user._id,
+    role: user.role,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || user.googleAvatar || "" // store google profile picture if available
+  },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
