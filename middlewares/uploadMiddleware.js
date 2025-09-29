@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Resolve from project root
-const uploadPath = path.join(process.cwd(), 'src', 'uploads', 'foods');
+const uploadPath = path.join(process.cwd(),'uploads', 'foods');
 
 // Ensure folder exists
 if (!fs.existsSync(uploadPath)) {
