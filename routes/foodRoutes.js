@@ -24,13 +24,23 @@ router.post(
 // router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 
 
+
+
+
 router.put('/:id', upload.single('image'), protect, admin, (req, res, next) => {
   if (req.file) {
     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
     console.log('Checking file at:', fullPath);
-    setTimeout(() => {
-      console.log('Exists after delay:', fs.existsSync(fullPath));
-    }, 1000);
+    console.log('Exists:', fs.existsSync(fullPath));
+
+    // Manual write test
+    const testPath = path.join(process.cwd(), 'uploads', 'foods', 'test.txt');
+    try {
+      fs.writeFileSync(testPath, 'test content');
+      console.log('Manual write success:', fs.existsSync(testPath));
+    } catch (err) {
+      console.error('Manual write failed:', err.message);
+    }
   }
   next();
 });
