@@ -32,6 +32,8 @@ router.put('/:id', upload.single('image'), protect, admin, (req, res, next) => {
     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
     console.log('Checking file at:', fullPath);
     console.log('Exists:', fs.existsSync(fullPath));
+    console.log('req.file.path:', req.file.path);
+
 
     // Manual write test
     const testPath = path.join(process.cwd(), 'uploads', 'foods', 'test.txt');
