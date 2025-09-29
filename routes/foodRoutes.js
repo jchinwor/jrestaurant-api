@@ -23,17 +23,14 @@ router.post(
 // Admin only: Update food
 // router.put('/:id', protect, admin, upload.single('image'), foodController.updateFood);
 
-
-
-
+const fs = require('fs');
+const path = require('path');
 
 router.put('/:id', upload.single('image'), protect, admin, (req, res, next) => {
   if (req.file) {
     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
     console.log('Checking file at:', fullPath);
     console.log('Exists:', fs.existsSync(fullPath));
-    console.log('req.file.path:', req.file.path);
-
 
     // Manual write test
     const testPath = path.join(process.cwd(), 'uploads', 'foods', 'test.txt');
@@ -46,6 +43,29 @@ router.put('/:id', upload.single('image'), protect, admin, (req, res, next) => {
   }
   next();
 });
+
+
+
+
+// router.put('/:id', upload.single('image'), protect, admin, (req, res, next) => {
+//   if (req.file) {
+//     const fullPath = path.join(process.cwd(), 'uploads', 'foods', req.file.filename);
+//     console.log('Checking file at:', fullPath);
+//     console.log('Exists:', fs.existsSync(fullPath));
+//     console.log('req.file.path:', req.file.path);
+
+
+//     // Manual write test
+//     const testPath = path.join(process.cwd(), 'uploads', 'foods', 'test.txt');
+//     try {
+//       fs.writeFileSync(testPath, 'test content');
+//       console.log('Manual write success:', fs.existsSync(testPath));
+//     } catch (err) {
+//       console.error('Manual write failed:', err.message);
+//     }
+//   }
+//   next();
+// });
 
 
 
