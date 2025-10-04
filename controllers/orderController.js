@@ -5,6 +5,17 @@ const Food = require("../models/foodModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 
+
+// @desc    Get all orders
+exports.getAllOrders = catchAsync(async (req, res) => {
+  const orders = await Order.find({});
+  res.status(200).json({
+    status: 'success',
+    results: orders.length,
+     orders
+  });
+});
+
 // Place order
 exports.placeOrder = catchAsync(async (req, res, next) => {
   const cart = await Cart.findOne({ user: req.user._id }).populate("items.food");
