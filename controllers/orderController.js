@@ -44,6 +44,33 @@ exports.placeOrder = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: "success", data: order });
 });
 
+// @desc    Update order status or payment status
+// @route   PATCH /api/orders/:id
+// @access  Admin (or user if you want limited control)
+exports.updateOrder = catchAsync(async (req, res, next) => {
+  const { status, paymentStatus } = req.body;
+
+  // Only allow updating specific fields
+  const updateData = {};
+  if (status) updateData.status = status;
+  if (paymentStatus) updateData.paymentStatus = paymentStatus;
+
+  const order = await Order.findByIdAndUpdate(req.params.id, updateData, {
+    new: true,
+    runValidators: true,
+  }).populate("user items.food");
+
+  if (!order) {
+    return next(new AppError("No order found with that ID", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: order,
+  });
+});
+
+
 // Get user orders
 exports.getMyOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find({ user: req.user._id }).populate("items.food");
