@@ -51,22 +51,18 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
   const { status, paymentStatus } = req.body;
 
   // Only allow updating specific fields
-  const updateData = {};
-  if (status) updateData.status = status;
-  if (paymentStatus) updateData.paymentStatus = paymentStatus;
-
-  const order = await Order.findByIdAndUpdate(req.params.id, updateData, {
-    new: true,
-    runValidators: true,
-  }).populate("user items.food");
-
+const order = await Order.findById(req.params.id);
+  order.status = req.body.status || order.status;
+  order.paymentStatus = req.body.paymentStatus || order.paymentStatus;
+  const updatedOrder = await order.save();
+ 
   if (!order) {
     return next(new AppError("No order found with that ID", 404));
   }
 
   res.status(200).json({
     status: "success",
-    data: order,
+    data: updatedOrder,
   });
 });
 
