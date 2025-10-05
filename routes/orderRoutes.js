@@ -1,7 +1,7 @@
 // routes/orderRoutes.js
 const express = require("express");
 const { placeOrder, getMyOrders, getAllOrders, updateOrder } = require("../controllers/orderController");
-const { protect } = require("../middlewares/authMiddleware");
+const { protect, admin } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
