@@ -10,6 +10,6 @@ router.use(protect);
 router.post("/place", placeOrder);
 router.get("/my-orders", getMyOrders);
 router.get("/all-orders", getAllOrders);
-router.patch("/:id",admin, updateOrder);
+router.put("/:id",admin, updateOrder);
 
 module.exports = router;
