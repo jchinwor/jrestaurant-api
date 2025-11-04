@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    biometric_enabled: {
+      type: Boolean,
+      default: false,
+    },
     verificationCode: {
       type: String,
       default: false,
