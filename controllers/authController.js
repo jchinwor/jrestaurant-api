@@ -16,7 +16,7 @@ const generateToken = (id, role) => {
 
 // @desc    Register a new user
 exports.register = catchAsync(async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, biometric_enabled = false  } = req.body;
 
   const { error, value } = registerSchema.validate({ name, email, password, role });
   if (error) {  
@@ -35,7 +35,8 @@ exports.register = catchAsync(async (req, res, next) => {
     name,
     email,
     password: hashedPassword,
-    role
+    role,
+    biometric_enabled
   });
 
   res.status(201).json({
