@@ -255,29 +255,43 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 
   // Generate a forgot password code
-  const forgotPasswordCode = Math.floor(100000 + Math.random() * 900000); // returns a number
-  // Send forgot password code via email
+try {
+  const forgotPasswordCode = Math.floor(100000 + Math.random() * 900000);
+
   let info = await transporter.sendMail({
-    from: `"Justiceres API" <${process.env.SMTP_USER}>`, // sender address
-    to: user.email, // list of receivers 
-    subject: "Forgot Password Code", // Subject line
-    text: `Your forgot password code is ${forgotPasswordCode}`, // plain text body 
-    html: `<b>Your forgot password code is ${forgotPasswordCode}</b>` // html body
+    from: `"Justiceres API" <${process.env.SMTP_USER}>`,
+    to: user.email,
+    subject: "Forgot Password Code",
+    text: `Your forgot password code is ${forgotPasswordCode}`,
+    html: `<b>Your forgot password code is ${forgotPasswordCode}</b>`
   });
-  if(info.accepted[0] === user.email){
-      const hashCodedValue = hmacProcess(forgotPasswordCode, process.env.JWT_SECRET);
-      user.forgotPasswordCode = hashCodedValue; 
-      user.forgotPasswordCodeValidation = Date.now() + 10 * 60 * 1000; // 10 minutes from now
-      await user.save();
-      return res.status(200).json({
-        status: 'success',
-        message: 'Forgot password code sent successfully'
-      });
+
+  if (info.accepted.includes(user.email)) {
+    const hashCodedValue = hmacProcess(forgotPasswordCode, process.env.JWT_SECRET);
+    user.forgotPasswordCode = hashCodedValue;
+    user.forgotPasswordCodeValidation = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Forgot password code sent successfully'
+    });
   }
+
   res.status(404).json({
     status: 'fail',
     message: 'Failed to send forgot password code'
   });
+
+} catch (error) {
+  console.error('Error sending forgot password email:', error);
+  res.status(500).json({
+    status: 'error',
+    message: 'Internal server error',
+    error: error.message
+  });
+}
+
 
 
 })
