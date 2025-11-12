@@ -1,12 +1,16 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/userModel');
+// Resend may not support require(). If it doesn't, you might need to find an alternative or use dynamic import()
+const { Resend } = require('resend'); 
+const crypto = require('crypto');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { registerSchema, loginSchema, verificationCodeSchema, resetPasswordSchema, forgotPasswordSchema } = require('../middlewares/validator');
 const transporter = require('../middlewares/sendMail');
 const { hmacProcess } = require('../utils/hashing');
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 // Generate JWT Token
 const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -206,95 +210,137 @@ exports.verifyVerificationCode = catchAsync(async (req, res, next) => {
 
 })
 
+// @desc    Reset Password
 exports.resetPassword = catchAsync(async (req, res, next) => {
+  const { email, token, newPassword } = req.body;
 
-  const { _id:userId, verified } = req.user;
-  const { oldPassword, newPassword } = req.body;
+  if (!email || !token || !newPassword) {
+    return next(new AppError('Missing required fields', 400));
+  }
 
-  const { error, value } = resetPasswordSchema.validate({ oldPassword, newPassword });
-  if (error) {
-    return next(new AppError(error.details[0].message, 400));
-  }
-  if (!verified) {
-    return next(new AppError('User not verified', 400));
-  }
-  const user = await User.findById(userId).select('+password');
+  // Hash token to compare with DB
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Find user by token and email
+  const user = await User.findOne({
+    email,
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() }, // Token still valid
+  });
+
   if (!user) {
-    return next(new AppError('User not found', 404));
+    return next(new AppError('Token is invalid or has expired', 400));
   }
-  const isMatch = await bcrypt.compare(oldPassword, user.password);
-  if (!isMatch) {
-    return next(new AppError('Old password is incorrect', 400));
-  } 
-  // Hash new password
-  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-  user.password = hashedNewPassword;
+
+  // Update password
+  user.password = await bcrypt.hash(newPassword, 10);
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
   await user.save();
+
+  // Send confirmation email
+  await resend.emails.send({
+    from: 'GhanaEats <support@jenkinschinwor.com>',
+    to: email,
+    subject: 'Password Reset Successful',
+    html: `<p>Hello ${user.name || ''}, your password was successfully reset.</p>`,
+  });
+
   res.status(200).json({
     status: 'success',
     message: 'Password reset successfully',
-    data: {
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
   });
-
-
-}) 
-
+});
 
 // @desc    Send Forgot password
+// exports.forgotPassword = catchAsync(async (req, res, next) => {
+//   const { email } = req.body;
+
+//   const user = await User.findOne({ email });
+//   if (!user) {
+//     return next(new AppError('User not found', 404));
+//   }
+
+//   // Generate a forgot password code
+// try {
+//   const forgotPasswordCode = Math.floor(100000 + Math.random() * 900000);
+
+//   let info = await transporter.sendMail({
+//     from: `"Justiceres API" <${process.env.SMTP_USER}>`,
+//     to: user.email,
+//     subject: "Forgot Password Code",
+//     text: `Your forgot password code is ${forgotPasswordCode}`,
+//     html: `<b>Your forgot password code is ${forgotPasswordCode}</b>`
+//   });
+
+//   if (info.accepted.includes(user.email)) {
+//     const hashCodedValue = hmacProcess(forgotPasswordCode, process.env.JWT_SECRET);
+//     user.forgotPasswordCode = hashCodedValue;
+//     user.forgotPasswordCodeValidation = Date.now() + 10 * 60 * 1000;
+//     await user.save();
+
+//     return res.status(200).json({
+//       status: 'success',
+//       message: 'Forgot password code sent successfully'
+//     });
+//   }
+
+//   res.status(404).json({
+//     status: 'fail',
+//     message: 'Failed to send forgot password code'
+//   });
+
+// } catch (error) {
+//   console.error('Error sending forgot password email:', error);
+//   res.status(500).json({
+//     status: 'error',
+//     message: 'Internal server error',
+//     error: error.message
+//   });
+// }
+
+
+
+// })
+
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError('User not found', 404));
-  }
+  if (!user) return next(new AppError('User not found', 404));
 
-  // Generate a forgot password code
-try {
-  const forgotPasswordCode = Math.floor(100000 + Math.random() * 900000);
+  // Generate reset token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-  let info = await transporter.sendMail({
-    from: `"Justiceres API" <${process.env.SMTP_USER}>`,
-    to: user.email,
-    subject: "Forgot Password Code",
-    text: `Your forgot password code is ${forgotPasswordCode}`,
-    html: `<b>Your forgot password code is ${forgotPasswordCode}</b>`
+  user.passwordResetToken = hashedToken;
+  user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 mins
+  await user.save({ validateBeforeSave: false });
+
+  // Create reset link
+  const resetURL = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&email=${email}`;
+
+  // Send email via Resend
+  await resend.emails.send({
+    from: 'GhanaEats <support@jenkinschinwor.com>',
+    to: email,
+    subject: 'Password Reset Request',
+    html: `
+      <p>Hello ${user.name || ''},</p>
+      <p>You requested a password reset. Click below to set a new password:</p>
+      <a href="${resetURL}" 
+         style="background:#2563eb;color:#fff;padding:10px 20px;
+         text-decoration:none;border-radius:5px;">Reset Password</a>
+      <p>This link will expire in 10 minutes.</p>
+      <p>If you didn’t request this, please ignore this email.</p>
+    `,
   });
 
-  if (info.accepted.includes(user.email)) {
-    const hashCodedValue = hmacProcess(forgotPasswordCode, process.env.JWT_SECRET);
-    user.forgotPasswordCode = hashCodedValue;
-    user.forgotPasswordCodeValidation = Date.now() + 10 * 60 * 1000;
-    await user.save();
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Forgot password code sent successfully'
-    });
-  }
-
-  res.status(404).json({
-    status: 'fail',
-    message: 'Failed to send forgot password code'
+  res.status(200).json({
+    status: 'success',
+    message: 'Password reset link sent to email',
   });
-
-} catch (error) {
-  console.error('Error sending forgot password email:', error);
-  res.status(500).json({
-    status: 'error',
-    message: 'Internal server error',
-    error: error.message
-  });
-}
-
-
-
-})
+});
 
 
 // @desc    Verify the forgetPassword code

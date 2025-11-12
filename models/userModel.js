@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
       required: function () {
         return this.provider === "local"; // only require for local signup
       },
+      select: false, // hide password by default
     },
     verified: {
       type: Boolean,
@@ -35,22 +36,37 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    // ✅ Email verification
     verificationCode: {
-      type: String,
-      default: false,
-    },
-    verificationCodeValidation: {
-      type: Number,
-      default: false,
-    },
-    forgotPasswordCode: {
       type: String,
       default: "",
     },
-    forgotPasswordCodeValidation: {
+    verificationCodeValidation: {
       type: Number,
-      default: false,
+      default: null,
     },
+
+    // ❌ DEPRECATED (you can remove these safely if switching to token link reset)
+    // forgotPasswordCode: {
+    //   type: String,
+    //   default: "",
+    // },
+    // forgotPasswordCodeValidation: {
+    //   type: Number,
+    //   default: null,
+    // },
+
+    // ✅ New fields for password reset via link
+    passwordResetToken: {
+      type: String,
+      default: null,
+    },
+    passwordResetExpires: {
+      type: Date,
+      default: null,
+    },
+
     googleId: { type: String },
     provider: { type: String, enum: ["local", "google"], default: "local" },
     avatar: { type: String },
