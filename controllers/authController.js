@@ -116,95 +116,9 @@ exports.signout = (req, res) => {
 };
 
 
-// @desc    Send verification code to user email
-exports.sendVerificationCode = catchAsync(async (req, res) => {
 
-  const { email } = req.body;  
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'User not found'
-    });
-  }
-  if(user.verified){
-    return res.status(400).json({
-      status: 'fail',
-      message: 'User already verified'
-    });
-  }
-  // Generate a verification code
- const verificationCode = Math.floor(100000 + Math.random() * 900000); // returns a number
 
-  // Send verification code via email
-  let info = await transporter.sendMail({
-    from: `"Justiceres API" <${process.env.SMTP_USER}>`, // sender address
-    to: user.email, // list of receivers 
-    subject: "Verification Code", // Subject line
-    text: `Your verification code is ${verificationCode}`, // plain text body 
-    html: `<b>Your verification code is ${verificationCode}</b>` // html body
-  });
-  if(info.accepted[0] === user.email){
-      const hashCodedValue = hmacProcess(verificationCode, process.env.JWT_SECRET);
-      user.verificationCode = hashCodedValue; 
-      user.verificationCodeValidation = Date.now() + 10 * 60 * 1000; // 10 minutes from now
-      await user.save();
-      return res.status(200).json({
-        status: 'success',
-        message: 'Verification code sent successfully'
-      });
-  }
-  res.status(404).json({
-    status: 'fail',
-    message: 'Failed to send verification code'
-  });
-
-});
-
-// @desc    Verify the verification code
-exports.verifyVerificationCode = catchAsync(async (req, res, next) => {
-  const { email, providedCode } = req.body;
-
-  const { error, value } = verificationCodeSchema.validate({ email, providedCode });
-  if (error) {
-    return next(new AppError(error.details[0].message, 400));
-  }
-
-  const codeValue = providedCode.toString();
-  const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError('User not found', 404));
-  }
-  if (user.verified) {
-    return next(new AppError('User already verified', 400));
-  }
-  if (!user.verificationCode || !user.verificationCodeValidation) {
-    return next(new AppError('Verification code not sent or expired', 400));
-  }
-  const hashCodedValue = hmacProcess(codeValue, process.env.JWT_SECRET);
-  if (user.verificationCode !== hashCodedValue) {
-    return next(new AppError('Invalid verification code', 400));
-  }
-  if (Date.now() > user.verificationCodeValidation) {
-    return next(new AppError('Verification code has expired', 400));
-  }
-  user.verified = true;
-  user.verificationCode = undefined; // Clear the verification code
-  user.verificationCodeValidation = undefined; // Clear the validation time
-  await user.save();
-  res.status(200).json({
-    status: 'success',
-    message: 'User verified successfully',
-    data: {
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
-  });
-
-})
 
 // @desc    Reset Password
 exports.resetPassword = catchAsync(async (req, res, next) => {
@@ -248,56 +162,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   });
 });
 
-// @desc    Send Forgot password
-// exports.forgotPassword = catchAsync(async (req, res, next) => {
-//   const { email } = req.body;
 
-//   const user = await User.findOne({ email });
-//   if (!user) {
-//     return next(new AppError('User not found', 404));
-//   }
-
-//   // Generate a forgot password code
-// try {
-//   const forgotPasswordCode = Math.floor(100000 + Math.random() * 900000);
-
-//   let info = await transporter.sendMail({
-//     from: `"Justiceres API" <${process.env.SMTP_USER}>`,
-//     to: user.email,
-//     subject: "Forgot Password Code",
-//     text: `Your forgot password code is ${forgotPasswordCode}`,
-//     html: `<b>Your forgot password code is ${forgotPasswordCode}</b>`
-//   });
-
-//   if (info.accepted.includes(user.email)) {
-//     const hashCodedValue = hmacProcess(forgotPasswordCode, process.env.JWT_SECRET);
-//     user.forgotPasswordCode = hashCodedValue;
-//     user.forgotPasswordCodeValidation = Date.now() + 10 * 60 * 1000;
-//     await user.save();
-
-//     return res.status(200).json({
-//       status: 'success',
-//       message: 'Forgot password code sent successfully'
-//     });
-//   }
-
-//   res.status(404).json({
-//     status: 'fail',
-//     message: 'Failed to send forgot password code'
-//   });
-
-// } catch (error) {
-//   console.error('Error sending forgot password email:', error);
-//   res.status(500).json({
-//     status: 'error',
-//     message: 'Internal server error',
-//     error: error.message
-//   });
-// }
-
-
-
-// })
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const { email } = req.body;
@@ -339,48 +204,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 
-// @desc    Verify the forgetPassword code
-exports.verifyForgotPasswordCode = catchAsync(async (req, res, next) => {
-  const { email, providedCode, newPassword } = req.body;
-
-  const { error, value } = forgotPasswordSchema.validate({ email, providedCode,newPassword });
-  if (error) {
-    return next(new AppError(error.details[0].message, 400));
-  }
-
-  const codeValue = providedCode.toString();
-  const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError('User not found', 404));
-  }
-  if (!user.forgotPasswordCode || !user.forgotPasswordCodeValidation) {
-    return next(new AppError('Forgot password code not sent or expired', 400));
-  }
-  const hashCodedValue = hmacProcess(codeValue, process.env.JWT_SECRET);
-  if (user.forgotPasswordCode !== hashCodedValue) {
-    return next(new AppError('Invalid forgot password code', 400));
-  }
-  if (Date.now() > user.forgotPasswordCodeValidation) {
-    return next(new AppError('Forgot password code has expired', 400));
-  }
-  // Hash new password
-  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-  user.password = hashedNewPassword;
-  user.forgotPasswordCode = undefined; // Clear the forgot password code
-  user.forgotPasswordCodeValidation = undefined; // Clear the validation time
-  await user.save();  
-  res.status(200).json({
-    status: 'success',
-    message: 'Password reset successfully',
-    data: {
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
-  });
-
-})
 
 // @desc    Get all users (Admin only)
 exports.getAllUsers = catchAsync(async (req, res) => {
