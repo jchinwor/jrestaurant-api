@@ -9,7 +9,7 @@ router.post('/signout',protect, authController.signout);
 
 router.patch('/send-verification-code',protect, authController.sendVerificationCode);
 router.patch('/verify-verification-code',protect, authController.verifyVerificationCode);
-router.patch('/reset-password',protect, authController.resetPassword);
+router.patch('/reset-password', authController.resetPassword);
 
 router.patch('/send-forgot-password', authController.forgotPassword);
 router.patch('/verify-forgot-password-code', authController.verifyForgotPasswordCode);
