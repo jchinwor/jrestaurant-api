@@ -83,14 +83,14 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   const user = await User.findOne({ email });
-  if (!user) return next(new AppError('Invalid credentials', 400));
+  if (!user) return next(new AppError('No user found', 400));
 
   if (!user || !user.password) {
-  return next(new AppError('Invalid credentials', 400));
+  return next(new AppError('No user or password found', 400));
 }
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return next(new AppError('Invalid credentials', 400));
+  if (!isMatch) return next(new AppError('Invalid user or password mismatch', 400));
 
   res.status(200).json({
     status: 'success', 
