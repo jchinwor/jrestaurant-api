@@ -77,23 +77,19 @@ exports.getMe = catchAsync(async (req, res, next) => {
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const { error, value } = loginSchema.validate({ email, password });
-  if (error) {
-    return next(new AppError(error.details[0].message, 400));
-  }
+  const { error } = loginSchema.validate({ email, password });
+  if (error) return next(new AppError(error.details[0].message, 400));
 
-  const user = await User.findOne({ email });
-  if (!user) return next(new AppError('No user found', 400));
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) return next(new AppError('Invalid Credentials', 400));
 
-  if (!user || !user.password) {
-  return next(new AppError('No user or password found', 400));
-}
+  if (!user.password) return next(new AppError('Invalid Credentials', 400));
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return next(new AppError('Invalid user or password mismatch', 400));
+  if (!isMatch) return next(new AppError('Invalid Credentials', 400));
 
   res.status(200).json({
-    status: 'success', 
+    status: 'success',
     message: 'User logged in successfully',
     data: {
       _id: user.id,
