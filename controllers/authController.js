@@ -120,6 +120,27 @@ exports.signout = (req, res) => {
 
 
 
+// @desc    Contact Message
+exports.contactMessage = catchAsync(async (req, res, next) => {
+  const { email, subject, message } = req.body;
+
+  if (!email || !subject || !message) {
+    return next(new AppError('Missing required fields', 400));
+  }
+
+  // Send confirmation email
+  await resend.emails.send({
+    from: 'Jenkinschinwor.com <support@jenkinschinwor.com>',
+    to: `${process.env.RECEIVER_EMAIL}`,
+    subject: `${subject}`,
+    html: `New Message \n\nSubject: ${subject}\nFrom: ${email}\nMessage:${message}`,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Email successfully sent!',
+  });
+});
 // @desc    Reset Password
 exports.resetPassword = catchAsync(async (req, res, next) => {
   const { email, token, newPassword } = req.body;
