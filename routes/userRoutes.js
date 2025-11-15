@@ -11,6 +11,7 @@ router.post('/signout',protect, authController.signout);
 router.patch('/reset-password', authController.resetPassword);
 
 router.patch('/send-forgot-password', authController.forgotPassword);
+router.post('/contact-email', authController.contactMessage);
 
 
 
