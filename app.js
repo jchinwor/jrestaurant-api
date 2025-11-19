@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:9000","https://www.jenkinschinwor.com","https://ghanaeat.onrender.com","http://localhost:3000"],
+    origin: ["http://localhost:9000","https://www.jenkinschinwor.com","https://ghanaeat.onrender.com","http://localhost:3000","https://ghanaeatadmin.onrender.com"],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true
   })
